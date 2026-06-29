@@ -104,6 +104,10 @@
         button.padlet-btn { background-color: var(--padlet-color); }
         button.padlet-btn:hover { background-color: var(--padlet-hover); }
         
+        /* 그래프 저장용 컴팩트 버튼 */
+        button.save-btn { background-color: #475569; color: white; border: none; padding: 6px 12px; font-size: 0.85rem; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; }
+        button.save-btn:hover { background-color: #1E293B; }
+        
         /* 결과 시각화 박스 */
         .result-box { background: white; border-radius: 10px; padding: 18px; border: 1px solid #E2E8F0; font-size: 1.1rem; font-weight: 700; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
         .result-important { color: var(--primary); font-size: 1.25rem; background: #EFF6FF; padding: 2px 8px; border-radius: 4px; }
@@ -185,6 +189,12 @@
         }
         .calc-btn.clear-btn:hover {
             background: #DC2626;
+        }
+
+        /* 로딩 스피너 애니메이션 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* 반응형 차트 컨테이너 수직 늘어짐/왜곡 차단 프레임 적용 */
@@ -502,6 +512,27 @@
                     평균: <span class="result-important" id="out-mean">30.4</span> | 중앙값: <span class="result-important" id="out-median">15</span> | 최빈값: <span class="result-important" id="out-mode">15</span>
                 </div>
 
+                <!-- 대푯값 선정 및 수학적 근거 서술 칸 추가 영역 -->
+                <div style="background: white; padding: 22px; border-radius: 12px; border: 1px solid #BAE6FD; margin-bottom: 25px;">
+                    <span class="label-badge" style="background-color: #E0F2FE; color: #0369A1;">🎯 모둠 대푯값 의사결정</span>
+                    <h4 style="margin: 10px 0 5px 0; color:#1E293B;">이 중에서 우리 모둠의 데이터를 가장 잘 대표하는 값은 무엇인가요?</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin-top: 0; margin-bottom: 12px;">데이터의 분포적 특징(아주 튀는 극단적인 값이 존재하는지 여부 등)을 관찰한 후 알맞은 대푯값을 골라보세요.</p>
+                    
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <select id="representative-choice-1" style="width: 100%;" onchange="calculateRepresentative()">
+                            <option value="">-- 적절한 대푯값 선정 --</option>
+                            <option value="평균값">평균값 (극단적인 아주 크거나 작은 값이 없고 전체적으로 고르게 흩어진 경우)</option>
+                            <option value="중앙값">중앙값 (자료 안에 특이하게 크거나 작은 값이 섞여 있어서 평균의 의미가 훼손될 경우)</option>
+                            <option value="최빈값">최빈값 (가장 선호하거나 자주 선택되는 범주형 데이터 및 인기도를 집계할 때)</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 5px;">
+                        <span style="font-size: 0.85rem; font-weight: bold; color: #64748B;">선정한 구체적인 수학적 사유</span>
+                        <textarea id="representative-choice-reason-1" style="margin-top: 5px;" placeholder="선택한 대푯값이 다른 대푯값(평균/중앙/최빈)보다 왜 우리 모둠 데이터의 분포 특징을 더 신뢰할 수 있게 대변하는지 근거와 함께 써보세요." oninput="calculateRepresentative()"></textarea>
+                    </div>
+                </div>
+
                 <div style="background: white; padding: 22px; border-radius: 12px; border: 1px solid #BAE6FD; margin-bottom: 25px;">
                     <h4 style="margin-top: 0; color: var(--secondary); font-size: 1.1rem; line-height: 1.5;">
                         <span style="color: var(--primary);">📝 최종 종합 탐구 문제:</span><br> 
@@ -518,7 +549,7 @@
                         </div>
                     </div>
 
-                    <textarea id="final-synthesis-question" placeholder="위의 생각 열기 힌트를 가이드 삼아, 직접 생각한 대푯값들의 특징을 자유롭게 작성해 보세요."></textarea>
+                    <textarea id="final-synthesis-question" placeholder="위의 생각 열기 힌트를 가이드 삼아, 직접 생각한 대푯값들의 특징을 자유롭게 작성해 보세요." oninput="calculateRepresentative()"></textarea>
                 </div>
 
                 <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 25px;">
@@ -537,6 +568,34 @@
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="action-btn" style="flex: 1; background-color: var(--accent);" onclick="submitOpinion(1)">대푯값 우드보드에 임시 등록</button>
                         <button class="action-btn padlet-btn" style="flex: 1;" onclick="submitToPadlet(1)">⛺ 패들렛 전송 & 복사</button>
+                    </div>
+                </div>
+
+                <!-- 1단원 Gemini AI 통계 피드백 센터 추가 -->
+                <div class="card" style="background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%); border: 2px solid #C084FC; padding: 25px; border-radius: 16px; margin-bottom: 30px;">
+                    <h3 style="color: #6D28D9; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        ✨ Gemini 수학 AI 통계 피드백 센터 (대푯값)
+                    </h3>
+                    <p style="font-size: 0.92rem; color: #5B21B6; margin-top: 0; margin-bottom: 15px; font-weight: 600;">
+                        내가 작성한 대푯값 분석과 종합 탐구 답변이 통계학적 성취 수준에 도달하는지 실시간 피드백을 받아보고 오개념을 바로잡아 보세요!
+                    </p>
+                    <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #DDD6FE; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="action-btn" style="background-color: #7C3AED;" onclick="requestAIFeedback(1)">
+                                📝 내 분석 의견 AI 자동 검토받기
+                            </button>
+                            <input type="text" id="ai-custom-input-1" placeholder="대푯값과 관련해서 더 궁금한 점을 직접 질문해 보세요! (예: 극단값이 미치는 영향)" style="flex: 1; min-width: 200px;">
+                            <button class="action-btn" style="background-color: #4C1D95;" onclick="sendCustomAIQuestion(1)">
+                                질문하기
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ai-response-box-1" style="display: none; background: #FFF; padding: 18px; border-radius: 10px; border: 1px solid #C084FC; max-height: 350px; overflow-y: auto; line-height: 1.6;">
+                        <div id="ai-loading-1" style="display: none; text-align: center; color: #7C3AED; font-weight: bold; padding: 10px 0;">
+                            <div class="spinner" style="display: inline-block; width: 24px; height: 24px; border: 4px solid rgba(124, 58, 237, 0.2); border-left-color: #7C3AED; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></div>
+                            Gemini AI 선생님이 답변을 열심히 정리하는 중입니다...
+                        </div>
+                        <div id="ai-text-content-1" style="font-size: 0.95rem; white-space: pre-wrap; color: #1E1B4B;"></div>
                     </div>
                 </div>
 
@@ -569,19 +628,21 @@
                 <p>두 반 모두 <strong>평균 점수는 80점</strong>으로 똑같습니다! 하지만 아래 그래프의 형태와 흩어진 정도를 보여주는 수치 차이를 비교해 보세요.</p>
                 
                 <div class="chart-grid">
-                    <div style="background:white; padding:15px; border-radius:8px; border:1px solid #E2E8F0;">
-                        <h4 style="text-align:center; margin:5px 0; color:#3B82F6;">A반 (평균에 밀집된 고른 분포)</h4>
+                    <div style="background:white; padding:15px; border-radius:8px; border:1px solid #E2E8F0; text-align: center;">
+                        <h4 style="margin:5px 0; color:#3B82F6;">A반 (평균에 밀집된 고른 분포)</h4>
                         <div class="canvas-wrapper">
                             <canvas id="chartA"></canvas>
                         </div>
-                        <p id="statA" style="font-weight:bold; text-align:center; margin-top:10px; color:#3B82F6; margin-bottom:0;">분산: 8.00 | 표준편차: 2.83점</p>
+                        <p id="statA" style="font-weight:bold; margin-top:10px; color:#3B82F6; margin-bottom:5px;">분산: 8.00 | 표준편차: 2.83점</p>
+                        <button class="save-btn" onclick="downloadChartImage('chartA', 'A반_성적분포_그래프')">💾 A반 그래프 저장</button>
                     </div>
-                    <div style="background:white; padding:15px; border-radius:8px; border:1px solid #E2E8F0;">
-                        <h4 style="text-align:center; margin:5px 0; color:#EF4444;">B반 (넓게 퍼져나간 분포)</h4>
+                    <div style="background:white; padding:15px; border-radius:8px; border:1px solid #E2E8F0; text-align: center;">
+                        <h4 style="margin:5px 0; color:#EF4444;">B반 (넓게 퍼져나간 분포)</h4>
                         <div class="canvas-wrapper">
                             <canvas id="chartB"></canvas>
                         </div>
-                        <p id="statB" style="font-weight:bold; text-align:center; margin-top:10px; color:#EF4444; margin-bottom:0;">분산: 200.00 | 표준편차: 14.14점</p>
+                        <p id="statB" style="font-weight:bold; margin-top:10px; color:#EF4444; margin-bottom:5px;">분산: 200.00 | 표준편차: 14.14점</p>
+                        <button class="save-btn" onclick="downloadChartImage('chartB', 'B반_성적분포_그래프')">💾 B반 그래프 저장</button>
                     </div>
                 </div>
             </div>
@@ -607,7 +668,7 @@
                     <li style="margin-bottom: 12px;">
                         <strong>표준편차:</strong> 분산의 양의 제곱근입니다.
                         <div style="background: #F1F5F9; padding: 4px 10px; display: inline-block; border-radius: 4px; font-weight: bold; margin-top: 4px;">
-                            공식: 표준편차 = 루트(분산)
+                            공식: 표준편차 = √분산
                         </div>
                     </li>
                 </ul>
@@ -624,18 +685,21 @@
                         <div class="canvas-wrapper-small">
                             <canvas id="targetChartA"></canvas>
                         </div>
+                        <button class="save-btn" onclick="downloadChartImage('targetChartA', '학생A_과녁점수_분포')">💾 저장</button>
                     </div>
                     <div style="background:white; padding:10px; border-radius:8px; border:1px solid #E9D5FF; text-align: center;">
                         <span style="font-weight: bold; color: #10B981; background: #D1FAE5; padding: 2px 8px; border-radius: 12px; font-size:0.85rem;">학생 B</span>
                         <div class="canvas-wrapper-small">
                             <canvas id="targetChartB"></canvas>
                         </div>
+                        <button class="save-btn" onclick="downloadChartImage('targetChartB', '학생B_과녁점수_분포')">💾 저장</button>
                     </div>
                     <div style="background:white; padding:10px; border-radius:8px; border:1px solid #E9D5FF; text-align: center;">
                         <span style="font-weight: bold; color: #3B82F6; background: #DBEAFE; padding: 2px 8px; border-radius: 12px; font-size:0.85rem;">학생 C</span>
                         <div class="canvas-wrapper-small">
                             <canvas id="targetChartC"></canvas>
                         </div>
+                        <button class="save-btn" onclick="downloadChartImage('targetChartC', '학생C_과녁점수_분포')">💾 저장</button>
                     </div>
                 </div>
 
@@ -681,11 +745,12 @@
                     </table>
                 </div>
 
-                <div class="canvas-wrapper" style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 15px;">
+                <div class="canvas-wrapper" style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
                     <canvas id="dustChart"></canvas>
+                    <button class="save-btn" onclick="downloadChartImage('dustChart', '지역별_미세먼지_오염도_비교_그래프')">💾 미세먼지 그래프 저장</button>
                 </div>
 
-                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 15px;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-top: 15px; margin-bottom: 15px;">
                     <h4 style="margin: 0 0 10px 0; color: #1E293B;">(1) 공학적 도구 작동: 두 지역의 평균, 분산, 표준편차를 구하시오.</h4>
                     <button class="action-btn" style="background-color: #16A34A; margin-bottom: 10px;" onclick="calculateDustStatistics()">⚙️ 월별 미세먼지 오염도 산포도 산출하기</button>
                     
@@ -741,10 +806,11 @@
                     </div>
                 </div>
 
-                <div style="background:white; padding:15px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:15px;">
+                <div style="background:white; padding:15px; border-radius:8px; border:1px solid #E2E8F0; margin-bottom:15px; text-align: center;">
                     <div class="canvas-wrapper-small">
                         <canvas id="customDispersionChart"></canvas>
                     </div>
+                    <button class="save-btn" onclick="downloadChartImage('customDispersionChart', '나만의_산포도_그래프')">💾 나만의 산포도 그래프 저장</button>
                 </div>
                 <div class="result-box" id="result-2" style="margin-bottom: 25px; background-color:#FFFBEB;">
                     평균: <span class="result-important" id="dispersion-mean">80.0</span>점 | 분산: <span class="result-important" id="dispersion-variance">200.00</span> | 표준편차: <span class="result-important" id="dispersion-stddev">14.14</span>점
@@ -759,13 +825,41 @@
                             </script>
                         </select>
                         <input type="number" id="student-number-2" placeholder="학번" style="width: 100px;">
-                        <input type="text" id="student-name-2" placeholder="이0름" style="width: 150px; flex:1;">
+                        <input type="text" id="student-name-2" placeholder="이름" style="width: 150px; flex:1;">
                     </div>
                     <textarea id="student-opinion-2" placeholder="위 단원 활동 2에서 서술한 내용이나, 직접 입력한 데이터의 표준편차를 기반으로 자료가 평균 주위에 분포한 형태를 해석해 공유해보세요."></textarea>
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="action-btn" style="flex: 1; background-color: var(--accent);" onclick="submitOpinion(2)">산포도 우드보드에 임시 등록</button>
                         <button class="action-btn padlet-btn" style="flex: 1;" onclick="submitToPadlet(2)">⛺ 패들렛 전송 & 복사</button>
+                    </div>
+                </div>
+
+                <!-- 2단원 Gemini AI 통계 피드백 센터 추가 -->
+                <div class="card" style="background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%); border: 2px solid #C084FC; padding: 25px; border-radius: 16px; margin-bottom: 30px;">
+                    <h3 style="color: #6D28D9; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        ✨ Gemini 수학 AI 통계 피드백 센터 (산포도)
+                    </h3>
+                    <p style="font-size: 0.92rem; color: #5B21B6; margin-top: 0; margin-bottom: 15px; font-weight: 600;">
+                        막대 분포도 분석 및 수집 데이터의 분산·표준편차 의미 해석이 타당한지 AI 선생님께 피드백을 받고 개념을 완벽하게 다듬어 보세요!
+                    </p>
+                    <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #DDD6FE; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="action-btn" style="background-color: #7C3AED;" onclick="requestAIFeedback(2)">
+                                📝 내 분석 의견 AI 자동 검토받기
+                            </button>
+                            <input type="text" id="ai-custom-input-2" placeholder="산포도 및 분산 개념과 관련해 궁금한 질문을 입력하세요. (예: 분산 공식에 제곱을 쓰는 이유)" style="flex: 1; min-width: 200px;">
+                            <button class="action-btn" style="background-color: #4C1D95;" onclick="sendCustomAIQuestion(2)">
+                                질문하기
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ai-response-box-2" style="display: none; background: #FFF; padding: 18px; border-radius: 10px; border: 1px solid #C084FC; max-height: 350px; overflow-y: auto; line-height: 1.6;">
+                        <div id="ai-loading-2" style="display: none; text-align: center; color: #7C3AED; font-weight: bold; padding: 10px 0;">
+                            <div class="spinner" style="display: inline-block; width: 24px; height: 24px; border: 4px solid rgba(124, 58, 237, 0.2); border-left-color: #7C3AED; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></div>
+                            Gemini AI 선생님이 답변을 열심히 정리하는 중입니다...
+                        </div>
+                        <div id="ai-text-content-2" style="font-size: 0.95rem; white-space: pre-wrap; color: #1E1B4B;"></div>
                     </div>
                 </div>
 
@@ -823,6 +917,13 @@
                     <strong style="color: #D97706;">💡 [교과서 지도 Tip]:</strong> "산점도에서 점들이 어느 한 직선 주위에 가까이 모여 있을수록 두 변량 사이의 상관관계가 강하다고 표현합니다."
                 </div>
 
+                <!-- 상관관계 vs 인과관계 오개념 방지 박스 추가 -->
+                <div style="background: #FFF1F2; border: 1px solid #FECDD3; padding: 16px; border-radius: 8px; margin-bottom: 15px; font-size: 0.92rem; line-height: 1.6;">
+                    <strong style="color: #BE123C; display: block; margin-bottom: 4px;">⚠️ [중요 오개념 타파] 상관관계와 인과관계의 차이점</strong>
+                    두 변량 사이에 밀접한 상관관계가 있다고 해서, 한 변량이 다른 변량의 직접적인 원인이 되는 <strong>'인과관계'가 반드시 성립하는 것은 아닙니다.</strong> 
+                    예를 들어 "아이스크림 판매량"과 "물놀이 익사 사고 수"는 매우 높은 양의 상관관계를 보이지만, 아이스크림을 먹어서 익사를 한 것은 아닙니다. 두 변량 모두 "여름철 기온 상승"이라는 제3의 원인(공통 요인)에 의해 동시에 늘어난 것뿐입니다. 통계 데이터를 다룰 때는 두 개념을 철저히 분리해 사고해야 합니다.
+                </div>
+
                 <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px;">
                     <h4 style="margin: 0 0 10px 0; color: #1E293B; display: flex; align-items: center; gap: 6px;">
                         💬 교과서 214p 수학 역량 기르기 (의사소통)
@@ -865,11 +966,12 @@
                     </table>
                 </div>
 
-                <div class="canvas-wrapper-scatter" style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 15px;">
+                <div class="canvas-wrapper-scatter" style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center; margin-bottom: 15px;">
                     <canvas id="weatherChart"></canvas>
+                    <button class="save-btn" onclick="downloadChartImage('weatherChart', '일조시간_운량_산점도_그래프')">💾 일조-운량 산점도 저장</button>
                 </div>
 
-                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 15px;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-top: 15px; margin-bottom: 15px;">
                     <h4 style="margin: 0 0 10px 0; color: #1E293B;">문항: 일조 시간과 운량 사이의 상관관계를 바르게 설명한 것을 고르고 의견을 쓰시오.</h4>
                     <div class="input-group" style="margin-bottom: 10px;">
                         <select id="weather-answer-select" style="width: 100%;">
@@ -889,7 +991,8 @@
                 <p>가상의 학생들이 공부 시간이나 운동 시간에 따른 수치의 상관성을 임의로 조작하여 테스트하는 보드입니다.</p>
                 <div class="input-group">
                     <button class="action-btn" style="background:#4B5563;" onclick="loadScenario('negative')">📉 예시1: 게임 시간 vs 수학 성적</button>
-                    <button class="action-btn" style="background:#4B5563;" onclick="loadScenario('none')">⚪ 예시2: 발 크기 vs 수학 성적 (상관관계 없음)</button>
+                    <!-- 예시 2 힌트 제거 패치 적용 -->
+                    <button class="action-btn" style="background:#4B5563;" onclick="loadScenario('none')">⚪ 예시2: 발 크기 vs 수학 성적</button>
                 </div>
                 <table id="scatter-table">
                     <thead>
@@ -902,10 +1005,11 @@
                     <button class="action-btn" onclick="updateScatterChart()">📊 현재 데이터 그래프에 반영하기</button>
                     <button class="action-btn" onclick="saveScatterExperimentToOpinion()" style="background-color:#2563EB;">✍️ 실험 분석 결과 의견 창에 전송하기</button>
                 </div>
-                <div style="width:100%; background: white; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom:20px;">
+                <div style="width:100%; background: white; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center; margin-bottom:20px;">
                     <div class="canvas-wrapper-scatter">
                         <canvas id="scatterChart"></canvas>
                     </div>
+                    <button class="save-btn" onclick="downloadChartImage('scatterChart', '나만의_산점도_실험_그래프')">💾 나만의 산점도 저장</button>
                 </div>
                 <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom:25px;">
                     <h4>🧠 그래프 해석 미션</h4>
@@ -936,6 +1040,34 @@
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="action-btn" style="flex: 1; background-color: var(--accent);" onclick="submitOpinion(3)">상관관계 우드보드에 임시 등록</button>
                         <button class="action-btn padlet-btn" style="flex: 1;" onclick="submitToPadlet(3)">⛺ 패들렛 전송 & 복사</button>
+                    </div>
+                </div>
+
+                <!-- 3단원 Gemini AI 통계 피드백 센터 추가 -->
+                <div class="card" style="background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%); border: 2px solid #C084FC; padding: 25px; border-radius: 16px; margin-bottom: 30px;">
+                    <h3 style="color: #6D28D9; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        ✨ Gemini 수학 AI 통계 피드백 센터 (상관관계)
+                    </h3>
+                    <p style="font-size: 0.92rem; color: #5B21B6; margin-top: 0; margin-bottom: 15px; font-weight: 600;">
+                        유추한 상관관계 형태 및 **"상관관계와 인과관계의 명확한 차이점"** 분석 서술에 대해 AI 선생님께 검증을 받고 오개념을 확실히 짚어보세요!
+                    </p>
+                    <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #DDD6FE; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="action-btn" style="background-color: #7C3AED;" onclick="requestAIFeedback(3)">
+                                📝 내 분석 의견 AI 자동 검토받기
+                            </button>
+                            <input type="text" id="ai-custom-input-3" placeholder="상관관계 vs 인과관계와 관련하여 평소 헷갈렸던 사례를 질문해 보세요." style="flex: 1; min-width: 200px;">
+                            <button class="action-btn" style="background-color: #4C1D95;" onclick="sendCustomAIQuestion(3)">
+                                질문하기
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ai-response-box-3" style="display: none; background: #FFF; padding: 18px; border-radius: 10px; border: 1px solid #C084FC; max-height: 350px; overflow-y: auto; line-height: 1.6;">
+                        <div id="ai-loading-3" style="display: none; text-align: center; color: #7C3AED; font-weight: bold; padding: 10px 0;">
+                            <div class="spinner" style="display: inline-block; width: 24px; height: 24px; border: 4px solid rgba(124, 58, 237, 0.2); border-left-color: #7C3AED; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></div>
+                            Gemini AI 선생님이 답변을 열심히 정리하는 중입니다...
+                        </div>
+                        <div id="ai-text-content-3" style="font-size: 0.95rem; white-space: pre-wrap; color: #1E1B4B;"></div>
                     </div>
                 </div>
 
@@ -1001,6 +1133,140 @@
     let customDispersionChart = null;
     let weatherChart = null;
     let scatterChart = null;
+
+    // 실시간 생성된 그래프 캔버스를 고화질 이미지 PNG 파일로 즉시 파일 내보내기 및 다운로드 해주는 유틸리티 함수
+    function downloadChartImage(canvasId, fileName) {
+        const canvas = document.getElementById(canvasId);
+        if(!canvas) {
+            showModal("저장 오류", "저장할 그래프 요소를 찾을 수 없습니다.");
+            return;
+        }
+        try {
+            const imageURI = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = fileName + '.png';
+            link.href = imageURI;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch(e) {
+            console.error("차트 이미지 다운로드 실패", e);
+            showModal("보안 및 저장 제한", "브라우저 및 외부 리소스 제약으로 인해 그래프 다운로드를 진행할 수 없습니다.");
+        }
+    }
+
+    // 🌐 [Gemini API 핵심 연동 함수] - 지수 백오프 기반 최대 5회 강결합 자동 재시도 탑재
+    async function callGemini(userPrompt, systemInstruction) {
+        const apiKey = ""; // API 실행 키 (런타임에 삽입 또는 인터셉트됨)
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+
+        const delayTimes = [1000, 2000, 4000, 8000, 16000];
+        let lastError = null;
+
+        for (let attempt = 0; attempt <= 5; attempt++) {
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 에러 발생 (코드: ${response.status})`);
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    return text;
+                } else {
+                    throw new Error("올바른 형태의 텍스트 응답을 가져오지 못했습니다.");
+                }
+            } catch (error) {
+                lastError = error;
+                if (attempt < 5) {
+                    const delay = delayTimes[attempt];
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        throw lastError;
+    }
+
+    // [AI 인터랙션 1] 학생들이 쓴 분석 의견에 대해 학업 수준 맞춤 피드백 제공
+    async function requestAIFeedback(sectionNum) {
+        const opinionText = document.getElementById(`student-opinion-${sectionNum}`).value.trim();
+        const textBox = document.getElementById(`ai-text-content-${sectionNum}`);
+        const responseBox = document.getElementById(`ai-response-box-${sectionNum}`);
+        const loadingBox = document.getElementById(`ai-loading-${sectionNum}`);
+
+        if(!opinionText) {
+            showModal("의견 입력 필요", "먼저 보고서 수치 분석이나 종합 질문 등의 입력칸을 채워주거나, 데이터 분석 결과들을 전송하여 의견란을 작성한 다음 자동 검토를 요청해 주세요!");
+            return;
+        }
+
+        responseBox.style.display = "block";
+        loadingBox.style.display = "block";
+        textBox.innerText = "";
+
+        let systemPrompt = "";
+        if (sectionNum === 1) {
+            systemPrompt = "당신은 중학교 3학년 수학 통계(대푯값) 전문 친절한 교사입니다. 학생이 입력한 모둠 데이터 수치와 '선정한 대푯값', 그리고 그 '선택 이유 및 종합 의견'을 찬찬히 읽고, 수학적인 타당성이 적합하게 서술되었는지 분석해 주세요. 극단값이 존재할 때 중앙값이 왜곡을 막아주는 장점이나 범주 데이터일 때 최빈값이 작동하는 통계 특성에 빗대어 학생의 생각이 맞는지 체크해 주시고, 더 깊이 개념을 정고화할 수 있는 따뜻한 칭찬과 보완 가이드를 한글 존댓말로 자세하게 답변해 주세요.";
+        } else if (sectionNum === 2) {
+            systemPrompt = "당신은 중학교 3학년 수학 통계(산포도 - 분산, 표준편차) 전문 친절한 교사입니다. 학생이 쓴 막대 분포 비교와 편차, 분산, 표준편차에 대한 분석 의견을 읽고 수학적인 타당성과 논리 전개를 검토해 주세요. 평균 주변에 데이터가 밀집하면 왜 분산이 작아지는지 등에 대해 혹시 오개념이 없는지 짚어주시고, √ 기호를 활용해 표준편차의 수학적 관계를 리마인드하며 개념 이해도를 완벽하게 가다듬을 수 있도록 친절하고 흥미로운 피드백을 제공해 주세요. 한글 존댓말을 쓰세요.";
+        } else {
+            systemPrompt = "당신은 중학교 3학년 수학 통계(상관관계 및 인과관계) 전문 친절한 교사입니다. 학생이 유추한 산점도 그래프 데이터의 흐름과 특히 '상관관계가 있어도 그것이 반드시 원인과 결과의 원인인 인과관계는 아니다'라는 해석 서술에 대하여 평가해 주세요. 학생이 양/음/없음 상관관계를 똑바로 판독했는지 맞춤 체크를 해 주시고, 통계 분석 과정에서 겪는 인과관계 오류 방지 요령을 격려 섞인 친절한 말투로 한글 존댓말 피드백을 상세히 작성해 주세요.";
+        }
+
+        try {
+            const feedback = await callGemini(opinionText, systemPrompt);
+            loadingBox.style.display = "none";
+            textBox.innerText = feedback;
+        } catch (error) {
+            loadingBox.style.display = "none";
+            textBox.innerHTML = `<span style="color: #EF4444; font-weight: bold;">⚠️ 피드백 생성 오류</span><br>네트워크가 불안정하거나 AI 모델이 바쁩니다. 잠시 후 [내 분석 의견 AI 자동 검토받기] 단추를 다시 한 번 클릭해 주세요.`;
+        }
+    }
+
+    // [AI 인터랙션 2] 학생들이 임의로 통계 개념 및 원리에 대해 직접 질의응답 처리
+    async function sendCustomAIQuestion(sectionNum) {
+        const customQuery = document.getElementById(`ai-custom-input-${sectionNum}`).value.trim();
+        const textBox = document.getElementById(`ai-text-content-${sectionNum}`);
+        const responseBox = document.getElementById(`ai-response-box-${sectionNum}`);
+        const loadingBox = document.getElementById(`ai-loading-${sectionNum}`);
+
+        if(!customQuery) {
+            showModal("질문 입력 필요", "질문하고 싶은 내용을 텍스트 상자에 간략하게 작성한 뒤 질문하기 버튼을 클릭하세요!");
+            return;
+        }
+
+        responseBox.style.display = "block";
+        loadingBox.style.display = "block";
+        textBox.innerText = "";
+
+        let systemPrompt = "";
+        if (sectionNum === 1) {
+            systemPrompt = "당신은 중학교 3학년 수학 통계(대푯값) 전문 친절한 교사입니다. 학생이 대푯값(평균, 중앙값, 최빈값) 개념에 대해 보완하거나 정교화하고자 직접 질문한 의문에 대해, 일상 속 직관적이고 쉬운 비유와 수학 원리를 바탕으로 한글 존댓말로 자상하게 설명해 주세요.";
+        } else if (sectionNum === 2) {
+            systemPrompt = "당신은 중학교 3학년 수학 통계(산포도, 편차, 분산, 표준편차) 전문 친절한 교사입니다. 학생이 분산이나 표준편차 공식, 편차 합이 0이 되는 이유 등에 관해 던진 질문에 대해, 루트(√) 기호와 정교한 계산 예시를 들어 한글 존댓말로 핵심을 콕 짚어 답변해 주세요.";
+        } else {
+            systemPrompt = "당신은 중학교 3학년 수학 통계(상관관계 및 인과관계) 전문 친절한 교사입니다. 학생들이 상관관계 판독 기준이나 인과관계 차이점에 관해 실생활의 재밌는 예시를 들어 질문한 내용에 대해 올바른 판단 요령을 전수하며 친절하게 한글 존댓말 답변을 작성해 주세요.";
+        }
+
+        try {
+            const response = await callGemini(customQuery, systemPrompt);
+            loadingBox.style.display = "none";
+            textBox.innerText = response;
+        } catch (error) {
+            loadingBox.style.display = "none";
+            textBox.innerHTML = `<span style="color: #EF4444; font-weight: bold;">⚠️ 질문 처리 실패</span><br>일시적인 통신 과부하로 답변을 출력하지 못했습니다. 잠시 후 재시도해 주세요.`;
+        }
+    }
 
     // 데이터 초기화
     function initApp() {
@@ -1315,11 +1581,13 @@
 
         document.getElementById('dust-a-mean').innerText = meanA + " ㎍/㎥";
         document.getElementById('dust-a-var').innerText = varA;
-        document.getElementById('dust-a-std').innerText = stdA + " ㎍/㎥";
+        // 한글 '루트' -> 수학 기호 '√' 수정 반영
+        document.getElementById('dust-a-std').innerText = "√" + varA + " ≒ " + stdA + " ㎍/㎥";
 
         document.getElementById('dust-b-mean').innerText = meanB + " ㎍/㎥";
         document.getElementById('dust-b-var').innerText = varB;
-        document.getElementById('dust-b-std').innerText = stdB + " ㎍/㎥";
+        // 한글 '루트' -> 수학 기호 '√' 수정 반영
+        document.getElementById('dust-b-std').innerText = "√" + varB + " ≒ " + stdB + " ㎍/㎥";
 
         document.getElementById('dust-stat-results').style.display = 'block';
     }
@@ -1366,6 +1634,7 @@
         }
     }
 
+    // 상관관계 vs 인과관계 통계 규칙 완벽 교정 반영
     function saveScatterExperimentToOpinion() {
         const thX = document.getElementById('th-x').innerText;
         const thY = document.getElementById('th-y').innerText;
@@ -1379,26 +1648,28 @@
 
         let interpretation = "";
         if (thX.includes("게임 시간")) {
-            interpretation = "게임 시간이 많아짐에 따라 대체로 수학 성적이 점차 하강하는 경향이 입증되어 게임 시간 and 성적 사이에 뚜렷한 [음의 상관관계]가 성립하는 성향을 파악할 수 있었습니다.";
+            interpretation = "게임 시간이 많아짐에 따라 대체로 수학 성적이 점차 하강하는 경향이 입증되어 게임 시간과 수학 성적 사이에 뚜렷한 [음의 상관관계]가 성립하는 성향을 파악할 수 있었습니다.";
         } else if (thX.includes("발 크기")) {
             interpretation = "신체의 발 크기 치수와 수학 성적의 분포는 점들이 무작위로 분산되어 있어 일관적인 경향을 찾을 수 없는 [상관관계가 없음]의 상태를 명확히 보여주었습니다.";
         } else {
             interpretation = "우리가 직접 설계하고 배치한 변량 데이터 분석에 의하면 두 데이터는 일관된 비례 혹은 반비례 성향을 보이고 있습니다.";
         }
 
-        const compiledText = `[나만의 변량 추가 산점도 실험 분석]\n- 분석 변량 세트: X축(${thX}) vs Y축(${thY})\n- 해석한 상관관계 형태: [${corrText}]\n- 수학적 실험 의견 서술:\n직접 학생 데이터를 시추하고 조작하며 꺾은선 형태를 시뮬레이션해 본 결과, ${interpretation} 이는 두 변량 사이에 경향성을 눈으로 확인하게 함으로써 데이터의 상관적 인과를 파악하는 요령을 터득하게 도와줍니다.`;
+        // 인과관계 오인 방지 텍스트 교정 및 수렴 완료
+        const compiledText = `[나만의 변량 추가 산점도 실험 분석]\n- 분석 변량 세트: X축(${thX}) vs Y축(${thY})\n- 해석한 상관관계 형태: [${corrText}]\n- 수학적 실험 의견 서술:\n직접 학생 데이터를 시추하고 조작하며 점들의 분포를 시뮬레이션해 본 결과, ${interpretation} 여기서 특히 중요한 통계학적 통찰은 두 변량 사이에 강한 상관관계가 존재한다고 하더라도 그것이 곧바로 둘 사이의 원인과 결과의 관계인 '인과관계'를 의미하는 것은 아니라는 사실을 깨달았다는 점입니다. 데이터의 추세를 읽어내되 제3의 통제 변인 가능성을 늘 염두에 두며 신중하게 데이터를 리터러시하는 올바른 탐구 자세를 함양할 수 있었습니다.`;
         
         document.getElementById('student-opinion-3').value = compiledText;
         showModal("전송 완료", "⬇ 하단 '[상관관계] 나의 분석 의견 공유하기' 창으로 데이터 분석 내용이 성공적으로 작성되었습니다!");
         document.getElementById('student-class-3').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // [수정] 대푯값 선정 드롭다운 및 구체적 이유를 보고서 텍스트 상자(student-opinion-1)에 동적으로 병합하는 구조화 패치
     function calculateRepresentative() {
         const desc = document.getElementById('data-desc-1').value.trim() || "입력한 임의의 데이터";
         const inputVal = document.getElementById('data-input-1').value;
         
         let arr = inputVal.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n));
-        if(arr.length === 0) return showModal("오류", "유효한 숫자를 쉼표로 구분하여 입력하세요.");
+        if(arr.length === 0) return;
 
         const mean = (arr.reduce((a,b)=>a+b, 0) / arr.length).toFixed(1);
         
@@ -1429,8 +1700,16 @@
         document.getElementById('out-median').innerText = parseFloat(median);
         document.getElementById('out-mode').innerText = modeStr;
 
+        const repChoice = document.getElementById('representative-choice-1').value;
+        const repReason = document.getElementById('representative-choice-reason-1').value.trim();
         const synthAns = document.getElementById('final-synthesis-question').value.trim();
+
         let finalOpinionText = `[나만의 데이터 실험 분석]\n- 자료: ${desc}\n- 원본값: [${arr.join(', ')}]\n- 분석 결과 ➔ 평균: ${parseFloat(mean)} | 중앙값: ${parseFloat(median)} | 최빈값: ${modeStr}\n`;
+        
+        if(repChoice) {
+            finalOpinionText += `\n[우리 모둠 선정 대푯값]: ${repChoice}\n- 선정한 수학적 판단 이유:\n${repReason || "(판단 이유 미기재)"}\n`;
+        }
+        
         if (synthAns) {
             finalOpinionText += `\n[대푯값 성격 분석 종합 의견]\n${synthAns}`;
         }
@@ -1549,12 +1828,13 @@
 
         document.getElementById('dispersion-mean').innerText = mean.toFixed(1);
         document.getElementById('dispersion-variance').innerText = variance.toFixed(2);
-        document.getElementById('dispersion-stddev').innerText = stddev.toFixed(2);
+        // 한글 루트 대신 수학 루트 기호 적용
+        document.getElementById('dispersion-stddev').innerText = "√" + variance.toFixed(2) + " ≒ " + stddev.toFixed(2);
 
         updateCustomDispersionChart(arr, mean);
 
         const opinionArea = document.getElementById('student-opinion-2');
-        opinionArea.value = `[나만의 산포도 데이터 분석]\n- 수집 자료: ${desc}\n- 데이터: [${arr.join(', ')}]\n- 분석 지표 ➔ 평균: ${mean.toFixed(1)}점 | 분산: ${variance.toFixed(2)} | 표준편차: ${stddev.toFixed(2)}점\n- 데이터 분포 해석:\n이 자료는 표준편차가 ${stddev.toFixed(2)} 수준입니다. 평균값인 ${mean.toFixed(1)}점을 기준으로 데이터들이 골고루 밀집되어 분포해 있는지 혹은 멀리 퍼져 있는지 그래프를 보고 해석해 볼 수 있습니다.`;
+        opinionArea.value = `[나만의 산포도 데이터 분석]\n- 수집 자료: ${desc}\n- 데이터: [${arr.join(', ')}]\n- 분석 지표 ➔ 평균: ${mean.toFixed(1)}점 | 분산: ${variance.toFixed(2)} | 표준편차: √${variance.toFixed(2)} ≒ ${stddev.toFixed(2)}점\n- 데이터 분포 해석:\n이 자료는 표준편차가 ${stddev.toFixed(2)} 수준입니다. 평균값인 ${mean.toFixed(1)}점을 기준으로 데이터들이 골고루 밀집되어 분포해 있는지 혹은 멀리 퍼져 있는지 그래프를 보고 해석해 볼 수 있습니다.`;
     }
 
     function updateCustomDispersionChart(dataArray, meanValue) {
